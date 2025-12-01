@@ -6,7 +6,7 @@ public class Day1 : IDay
 {
     public int Day => 1;
 
-    private List<int> ParseInput(string input)
+    private static List<int> ParseInput(string input)
     {
         var instructions = new List<int>();
 
@@ -51,9 +51,37 @@ public class Day1 : IDay
 
         return totalZeroes.ToString();
     }
+    
+    private static int CountZeroCrossings(int start, int delta, int max)
+    {
+        if (delta > 0)
+        {
+            return (start + delta) / max;
+        }
+
+        if (start == 0)
+        {
+            return (-delta - 1) / max;
+        }
+        
+        return (-delta - start + max) / max;
+    }
 
     public string Part2(string input)
     {
-        return input;
+        const int maximumValue = 99 + 1;
+        
+        var currentValue = 50;
+        
+        var instructions = ParseInput(input);
+        var totalZeroes = 0;
+        
+        foreach (var instruction in instructions)
+        {
+            totalZeroes += CountZeroCrossings(currentValue, instruction, maximumValue);
+            currentValue = (currentValue + instruction % maximumValue + maximumValue) % maximumValue;
+        }
+
+        return totalZeroes.ToString();
     }
 }
