@@ -47,6 +47,20 @@ public class Day2 : IDay
 
     public string Part2(string input)
     {
-        throw new NotImplementedException();
+        var ranges =  ParseInput(input);
+        long total = 0;
+
+        var repeatingRegex = new Regex(@"^(\d+)\1+$");
+
+        foreach (var range in ranges)
+        {
+            for (var i = range.left; i <= range.right; i++)
+            {
+                var idString = i.ToString();
+                total += repeatingRegex.IsMatch(idString) ? i : 0;
+            }
+        }
+
+        return total.ToString();
     }
 }
