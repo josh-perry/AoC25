@@ -5,9 +5,15 @@ var days = Assembly.GetExecutingAssembly()
     .GetTypes()
     .Where(t => t.GetInterfaces().Contains(typeof(IDay)))
     .Select(t => (IDay)Activator.CreateInstance(t)!)
+    .OrderBy(x => x.Day)
     .ToList();
+
+if (args.Contains("--just-last"))
+{
+    days = days[^1..];
+}
     
-foreach (var day in days.OrderBy(x => x.Day))
+foreach (var day in days)
 {
     Console.WriteLine($"Running day {day.Day}...");
 
