@@ -2,7 +2,7 @@ using System.Text.RegularExpressions;
 
 namespace AoC25.Days;
 
-public class Day5 : IDay
+public partial class Day5 : IDay
 {
     public int Day => 5;
     
@@ -28,21 +28,56 @@ public class Day5 : IDay
 
     public string Part2(string input)
     {
-        throw new NotImplementedException();
+        var (freshIngredientRanges, _) = ParseInput(input);
+        freshIngredientRanges = freshIngredientRanges.OrderBy(x => x.start).ToList();
+
+        while (MergeRanges(ref freshIngredientRanges)) { }
+
+        var freshIngredientCount = freshIngredientRanges.Sum(range => range.end - range.start + 1);
+        return freshIngredientCount.ToString();
     }
+
+    private bool MergeRanges(ref List<(long start, long end)> freshIngredientRanges)
+    {
+        var mergedRanges = false;
+        
+        for (var rangeIndex = 0; rangeIndex < freshIngredientRanges.Count; rangeIndex++)
+        {
+            var rangeA = freshIngredientRanges[rangeIndex];
+            
+            for (var rangeIndex2 = rangeIndex + 1; rangeIndex2 < freshIngredientRanges.Count; rangeIndex2++)
+            {
+                var rangeB = freshIngredientRanges[rangeIndex2];
+
+                if ((rangeB.start >= rangeA.start && rangeB.start <= rangeA.end) ||
+                    (rangeB.end >= rangeA.start && rangeB.end <= rangeA.end))
+                {
+                    var minStart = Math.Min(rangeA.start, rangeB.start);
+                    var maxEnd = Math.Max(rangeA.end, rangeB.end);
+
+                    freshIngredientRanges[rangeIndex] = (minStart, maxEnd);
+                    freshIngredientRanges.RemoveAt(rangeIndex2);
+                    mergedRanges = true;
+                }
+            }
+        }
+
+        return mergedRanges;
+    }
+
+    [GeneratedRegex(@"(\d+)-(\d+)")]
+    private static partial Regex FreshIngredientRegex();
 
     private (List<(long start, long end)> freshIngredientRanges, List<long> spoiledIngredientIds) ParseInput(string input)
     {
         var freshIngredientRanges = new List<(long start, long end)>();
         var spoiledIngredientIds = new List<long>();
 
-        var freshIngredientRegex = new Regex(@"(\d+)-(\d+)");
-
         foreach (var line in input.Split(Environment.NewLine))
         {
             if (string.IsNullOrEmpty(line)) continue;
-            
-            var match = freshIngredientRegex.Match(line);
+
+            var match = FreshIngredientRegex().Match(line);
 
             if (match.Success)
             {
