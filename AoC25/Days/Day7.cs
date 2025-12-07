@@ -9,7 +9,7 @@ public class Day7 : IDay
     public string Part1(string input)
     {
         var (startPosition, splitters, maxY) = ParseInput(input);
-        var beamPositions = new HashSet<(int y, int x)> { startPosition };
+        var beamPositions = new HashSet<(long y, long x)> { startPosition };
 
         var totalSplits = 0;
 
@@ -23,11 +23,8 @@ public class Day7 : IDay
                 {
                     totalSplits++;
                     
-                    if (!splitters.Contains((nextY, beam.x - 1)))
-                        beamPositions.Add((nextY, beam.x - 1));
-                    
-                    if (!splitters.Contains((nextY, beam.x + 1)))
-                        beamPositions.Add((nextY, beam.x + 1));
+                    beamPositions.Add((nextY, beam.x - 1));
+                    beamPositions.Add((nextY, beam.x + 1));
                 }
                 else
                 {
@@ -42,14 +39,53 @@ public class Day7 : IDay
 
     public string Part2(string input)
     {
-        throw new NotImplementedException();
+        var (startPosition, splitters, maxY) = ParseInput(input);
+        var beamPositions = new HashSet<(long y, long x)> { startPosition };
+        
+        var totalTimelinesAtPosition = new Dictionary<(long y, long x), long> { { startPosition, 1 } };
+
+        void IncrementTimelinesAtPosition((long y, long x) position, long amount = 1)
+        {
+            if (totalTimelinesAtPosition.TryAdd(position, amount))
+            {
+                return;
+            }
+            
+            totalTimelinesAtPosition[position] += amount;
+        }
+
+        for (var y = 0; y < maxY; y++)
+        {
+            foreach (var beam in beamPositions.Where(beam => beam.y == y).ToList())
+            {
+                var nextY = beam.y + 1;
+                
+                if (splitters.Contains((nextY, beam.x)))
+                {
+                    IncrementTimelinesAtPosition((nextY, beam.x - 1), totalTimelinesAtPosition[beam]);
+                    beamPositions.Add((nextY, beam.x - 1));
+
+                    IncrementTimelinesAtPosition((nextY, beam.x + 1), totalTimelinesAtPosition[beam]);
+                    beamPositions.Add((nextY, beam.x + 1));
+                }
+                else
+                {
+                    beamPositions.Remove(beam);
+                    beamPositions.Add((nextY, beam.x));
+                    IncrementTimelinesAtPosition((nextY, beam.x), totalTimelinesAtPosition[beam]);
+                }
+            }
+        }
+
+        var bottomRowTimelines = totalTimelinesAtPosition.Where(x => x.Key.y == maxY).Sum(x => x.Value);
+        return bottomRowTimelines.ToString();
     }
 
-    private ((int, int) startPosition, HashSet<(int y, int x)> splitters, int maxY) ParseInput(string input)
+    private ((long, long) startPosition, HashSet<(long y, long x)> splitters, long maxY) ParseInput(string input)
     {
         var stuffRegex = new Regex(@"(?<start>S)|(?<splitter>\^)");
         var startPosition = (0, 0);
-        var splitters = new HashSet<(int y, int x)>();
+        var splitters = new HashSet<(long y, long x)>();
         
         var y = 0;
         
