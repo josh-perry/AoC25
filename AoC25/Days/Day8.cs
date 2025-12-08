@@ -10,7 +10,7 @@ public class Day8 : IDay
     {
         var junctionBoxes = ParseInput(input);
         var circuits = new List<Circuit>();
-
+        
         var pairs = new List<(JunctionBox a, JunctionBox b, double distance)>();
         for (var i = 0; i < junctionBoxes.Count; i++)
         {
@@ -21,9 +21,50 @@ public class Day8 : IDay
             }
         }
 
-        var connectionsMade = 0;
+        var connected = 0;
+        foreach (var _ in ConnectClosestCircuits(circuits, pairs))
+        {
+            connected++;
 
-        foreach (var (a, b, distance) in pairs.OrderBy(p => p.distance))
+            if (connected == 1000) break;
+        }
+
+        var biggest = circuits.OrderByDescending(x => x.JunctionBoxes.Count).Take(3);
+        var total = biggest.Aggregate(1, (current, circuit) => current * circuit.JunctionBoxes.Count);
+        return total.ToString();
+    }
+    
+    public string Part2(string input)
+    {
+        var junctionBoxes = ParseInput(input);
+        var circuits = new List<Circuit>();
+        
+        var pairs = new List<(JunctionBox a, JunctionBox b, double distance)>();
+        for (var i = 0; i < junctionBoxes.Count; i++)
+        {
+            for (var j = i + 1; j < junctionBoxes.Count; j++)
+            {
+                var distance = GetDistance(junctionBoxes[i], junctionBoxes[j]);
+                pairs.Add((junctionBoxes[i], junctionBoxes[j], distance));
+            }
+        }
+
+        foreach (var (a, b) in ConnectClosestCircuits(circuits, pairs))
+        {
+            if (a.Circuit!.JunctionBoxes.Count == junctionBoxes.Count)
+            {
+                return ((long)a.X * b.X).ToString();
+            }
+        }
+
+        return "0";
+    }
+
+    private IEnumerable<(JunctionBox a, JunctionBox b)> ConnectClosestCircuits(
+        List<Circuit> circuits,
+        List<(JunctionBox a, JunctionBox b, double distance)> pairs)
+    {
+        foreach (var (a, b, _) in pairs.OrderBy(p => p.distance))
         {
             if (a.Circuit is not null && b.Circuit is not null)
             {
@@ -61,22 +102,8 @@ public class Day8 : IDay
                 circuit.JunctionBoxes.Add(b);
             }
 
-            connectionsMade++;
-
-            if (connectionsMade == 1000)
-            {
-                break;
-            }
+            yield return (a, b);
         }
-
-        var biggest = circuits.OrderByDescending(x => x.JunctionBoxes.Count).Take(3);
-        var total = biggest.Aggregate(1, (current, circuit) => current * circuit.JunctionBoxes.Count);
-        return total.ToString();
-    }
-
-    public string Part2(string input)
-    {
-        return "";
     }
 
     private List<JunctionBox> ParseInput(string input)
@@ -98,10 +125,7 @@ public class Day8 : IDay
         return junctionBoxes;
     }
 
-    private double GetDistance(JunctionBox a, JunctionBox b) => 
-        Math.Sqrt(Math.Pow(a.X - b.X, 2) + Math.Pow(a.Y - b.Y, 2) + Math.Pow(a.Z - b.Z, 2));
-
-    private int GetDistanceSquared(JunctionBox a, JunctionBox b) => 
+    private static int GetDistance(JunctionBox a, JunctionBox b) => 
         (a.X - b.X) * (a.X - b.X) + (a.Y - b.Y) * (a.Y - b.Y) + (a.Z - b.Z) * (a.Z - b.Z);
 
     private record Circuit
