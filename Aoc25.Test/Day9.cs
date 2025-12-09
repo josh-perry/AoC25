@@ -23,4 +23,26 @@ public class Day9
         // Assert
         Assert.Equal("50", day.Part1(input));
     }
+    
+    [Fact]
+    public void should_give_expected_result_for_mini_input_part2()
+    {
+        // Arrange
+        var input = """
+                    7,1
+                    11,1
+                    11,7
+                    9,7
+                    9,5
+                    2,5
+                    2,3
+                    7,3
+                    """;
+
+        // Act
+        var day = new AoC25.Days.Day9();
+
+        // Assert
+        Assert.Equal("24", day.Part2(input));
+    }
 }
