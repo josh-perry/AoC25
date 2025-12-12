@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 
 namespace AoC25.Days;
@@ -9,48 +10,56 @@ public class Day11 : IDay
     public string Part1(string input)
     {
         var devices = ParseInput(input);
-        var totalPaths = FindPathToStart(devices, "you");
-
+        var totalPaths = FindPathToDevice(devices, "you", "out");
+        
         return totalPaths.ToString();
     }
     
     public string Part2(string input)
     {
-        throw new NotImplementedException();
+        var devices = ParseInput(input);
+
+        var svrToFft = FindPathToDevice(devices, "svr", "fft");
+        var fftToDac = FindPathToDevice(devices, "fft", "dac");
+        var dacToOut =  FindPathToDevice(devices, "dac", "out");
+        
+        var svrToDac = FindPathToDevice(devices, "svr", "dac");
+        var dacToFft = FindPathToDevice(devices, "dac", "fft");
+        var fftToOut = FindPathToDevice(devices, "fft", "out");
+
+        var svrFftDacOutPaths = svrToFft * fftToDac * dacToOut;
+        var svrDacFftOutPaths = svrToDac * dacToFft * fftToOut;
+        var totalPaths = svrFftDacOutPaths + svrDacFftOutPaths;
+        
+        return totalPaths.ToString();
     }
 
-    private int FindPathToStart(Dictionary<string, List<string>> devices, string startingDevice)
+    private long FindPathToDevice(Dictionary<string, List<string>> devices, string device, string endDevice, HashSet<string>? visited = null, Dictionary<string, long>? deviceScores = null)
     {
-        var queue = new Queue<(string device, HashSet<string> visited)>();
-        var paths = 0;
+        visited ??= new();
+        deviceScores ??= new();
         
-        queue.Enqueue((startingDevice, []));
-
-        while (queue.Count > 0)
+        if (device == endDevice)
         {
-            var (currentDevice, visited) = queue.Dequeue();
-            var connectedDevices = devices[currentDevice];
-
-            foreach (var connectedDevice in connectedDevices)
-            {
-                if (connectedDevice == "out")
-                {
-                    paths++;
-                    continue;
-                }
-                else
-                {
-                    var newVisited = new HashSet<string>(visited);
-
-                    if (newVisited.Add(connectedDevice))
-                    {
-                        queue.Enqueue((connectedDevice, visited));
-                    }
-                }
-            }
+            return 1;
         }
 
-        return paths;
+        if (visited.Contains(device) || !devices.TryGetValue(device, out var connectedDevices))
+        {
+            return 0;
+        }
+
+        if (deviceScores.TryGetValue(device, out var deviceScore))
+        {
+            return deviceScore;
+        }
+
+        visited.Add(device);
+        var total = connectedDevices.Sum(connectedDevice => FindPathToDevice(devices, connectedDevice, endDevice, visited, deviceScores));
+        visited.Remove(device);
+        
+        deviceScores[device] = total;
+        return total;
     }
 
     private Dictionary<string, List<string>> ParseInput(string input)
