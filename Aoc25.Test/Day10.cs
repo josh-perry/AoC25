@@ -18,4 +18,36 @@ public class Day10
         // Assert
         Assert.Equal("7", day.Part1(input));
     }
+    
+    [Fact]
+    public void should_give_expected_result_for_mini_input_part2()
+    {
+        // Arrange
+        var input = """
+                    [.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}
+                    [...#.] (0,2,3,4) (2,3) (0,4) (0,1,2) (1,2,3,4) {7,5,12,7,2}
+                    [.###.#] (0,1,2,3,4) (0,3,4) (0,1,2,4,5) (1,2) {10,11,11,5,10,5}
+                    """;
+
+        // Act
+        var day = new AoC25.Days.Day10();
+
+        // Assert
+        Assert.Equal("33", day.Part2(input));
+    }
+
+    [Fact]
+    public void should_give_expected_result_for_mini_input_single_part2()
+    {
+        // Arrange
+        var input = """
+                    [.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}
+                    """;
+
+        // Act
+        var day = new AoC25.Days.Day10();
+
+        // Assert
+        Assert.Equal("10", day.Part2(input));
+    }
 }
